@@ -23,8 +23,10 @@ lto = true
 [dependencies]
 # The `wasm-bindgen` crate provides the bare minimum functionality needed
 # to interact with JavaScript.
-wasm-bindgen = "0.2.45"
+wasm-bindgen = {version="0.2.45", features=["serde-serialize"]}
 js-sys = "*"
+rayon-core="*"
+rayon="*"
 reqwest="*"
 chrono="*"
 #gloo="*"

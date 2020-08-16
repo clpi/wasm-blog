@@ -7,6 +7,8 @@ pub mod view;
 pub mod model;
 
 use std::mem::replace;
+use rayon::prelude::*;
+use serde::{Serialize, Deserialize};
 use futures_channel::oneshot;
 use std::{f64, rc::Rc, cell::RefCell,};
 use wasm_bindgen::prelude::*;
@@ -15,7 +17,7 @@ use wasm_bindgen_futures::{
 };
 use rand::{thread_rng, distributions::Alphanumeric, prelude::*};
 use web_sys::{Document, Element, HtmlElement, Window, console};
-use js_sys::{Promise, Reflect};
+use js_sys::{Promise, Reflect, WebAssembly, Uint8ClampedArray};
 use nalgebra::*;
 
 //use web_sys::console;
@@ -52,6 +54,10 @@ pub fn main_js() -> Result<(), JsValue> {
     let performance = window().performance().expect("");
     let start = get_time(performance.timing().request_start());
     let end = get_time(performance.timing().request_start());
+    //let (tx, rx) = oneshot::channel();
+    let users = async move {
+        get_users().await.unwrap();
+    };
 
 
     let func = Closure::wrap(Box::new(|| {
@@ -255,11 +261,13 @@ pub mod macros {
 
 pub struct Canvas {
     pub canvas: web_sys::HtmlCanvasElement,
+    pub dim: (i32, i32),
+    pub parent: Box<Option<web_sys::HtmlElement>>,
     pub context: web_sys::CanvasRenderingContext2d,
 }
 
 impl Canvas {
-    pub fn new() -> Option<Self> {
+    pub fn new(dim: (i32, i32)) -> Option<Self> {
         if let Ok(canvas) = doc().create_element("canvas").unwrap()
             .dyn_into::<web_sys::HtmlCanvasElement>() {
                 let cxt = canvas.get_context("2d")
@@ -267,7 +275,7 @@ impl Canvas {
                     .dyn_into::<web_sys::CanvasRenderingContext2d>()
                     .unwrap();
                 Some ( Self {
-                    canvas, context: cxt
+                    canvas, context: cxt, dim, parent: Box::new(None)
                 } )
         } else {
             None
@@ -321,4 +329,68 @@ pub mod element {
         doc().append_child(&div).unwrap();
         div.dyn_into::<HtmlElement>().unwrap()
     }
+
+    pub fn btn(paren: Option<HtmlElement>, text: Option<&str>) -> web_sys::HtmlButtonElement {
+        let btn = doc().create_element("btn").expect("");
+        btn.set_text_content(text);
+        if let Some(par) = paren {
+            par.append_child(&btn).unwrap();
+        } else {
+            doc().append_child(&btn).unwrap();
+        }
+        btn.dyn_into::<web_sys::HtmlButtonElement>().unwrap()
+    }
+}
+
+pub struct P {
+    el: web_sys::HtmlElement,
+    text: &'static str,
+}
+pub struct Btn {
+    el: web_sys::HtmlButtonElement,
+    text: &'static str,
+    style: String,
+    onclick: FnMut() -> (),
+
+}
+
+pub struct ButtonEl(web_sys::HtmlButtonElement);
+
+impl Btn {
+
+    pub fn on_click<F>(&mut self, mut func: F) -> () where
+    F: FnMut() -> () + 'static {
+       let func = Closure::wrap(Box::new(move || { 
+           func() 
+       }) as Box<dyn FnMut()>) ;
+       self.el.set_onclick(Some(func.as_ref().unchecked_ref()));
+       func.forget();
+    }
+
+    pub fn style(&mut self, prop: &str, val: &str) -> () {
+        self.el.style()
+            .set_property(prop, val)
+            .unwrap();
+    }
+}
+
+pub struct KeyEvent {
+   callback: Closure<dyn FnMut(web_sys::Event)>, 
+}
+
+pub struct Work {
+    func: Box<dyn FnOnce() + Send>
+}
+
+pub struct Link(web_sys::HtmlLinkElement);
+impl Link {
+    //pub fn to(self, link: &str) {
+        //self.set_attribute("href", link).unwrap();
+    //}
+}
+pub trait IsElem {
+    type elem;
+
+    fn on_click<F>(elem: HtmlElement, func: &'static dyn FnMut() -> ()) -> ();
+    fn style(prop: &str, val: &str) -> ();
 }
