@@ -25,14 +25,22 @@ lto = true
 # to interact with JavaScript.
 wasm-bindgen = "0.2.45"
 js-sys = "*"
+reqwest="*"
+chrono="*"
+#gloo="*"
 #nalgebra = "*"
 
 wasm-bindgen-futures = "*"
 nalgebra = { version = "0.20", default-features = false, features = [ "alloc" ] }
 serde = { version = "*", features= ["derive"] }
 serde_json = "*"
-nom="*"
-rand="*"
+#nom="*"
+#rand="*"
+rand = { version = "0.7.3", features = ["wasm-bindgen"] }
+#futures="0.3"
+futures-channel-preview = { version="0.3.0-alpha.18" }
+console_log="*"
+nom={ version="*", features=["regexp"] }
 
 # `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
 # compared to the default allocator's ~10K. However, it is slower than the default
@@ -43,9 +51,10 @@ wee_alloc = { version = "0.4.2", optional = true }
 # like the DOM.
 [dependencies.web-sys]
 version = "0.3.22"
-features = ["console", "Document", "Window", "Element", "EventListener", "CanvasRenderingContext2d",
+features = ["Performance", "PerformanceTiming", "console", "Document", "Window", "Element", "EventListener", "CanvasRenderingContext2d",
 "HtmlCanvasElement", "Event", "EventTarget", "FocusEvent", "KeyboardEvent", "DragEvent", "HtmlInputElement", "File", "FileReader", "HtmlButtonElement", "HtmlInputElement", "HtmlSelectElement", "HtmlTextAreaElement", "InputEvent", "Location", "MessageEvent", "MouseEvent", "Request", "Storage", "Text", "RequestCache", "RequestCredentials", "UiEvent", "Url", "WebSocket", "Worker", "WorkerOptions", "FocusEvent","FileList", "Headers", "PointerEvent", "Node", "ObserverCallback",
-"ProgressEvent", "Headers", "History", "HtmlLinkElement", "PopStateEvent"]
+"ProgressEvent", "Headers", "History", "HtmlLinkElement", "PopStateEvent",
+  "DomTokenList", "DomStringMap",   "CssStyleDeclaration", "NodeList"]
 
 #[dependencies.js-sys]
 #version = "*"
@@ -62,6 +71,5 @@ console_error_panic_hook = "0.1.5"
 # These crates are used for running unit tests.
 [dev-dependencies]
 wasm-bindgen-test = "0.2.45"
-futures = "0.1.27"
 js-sys = "0.3.22"
 wasm-bindgen-futures = "0.3.22"
