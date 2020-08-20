@@ -1,3 +1,5 @@
+pub mod md;
+
 use std::{
     fmt::Debug,
 };
@@ -32,16 +34,6 @@ pub enum ParseType {
     
 }
 
-pub struct Node {
-    pub children: Vec<Self>,
-    pub entry: ParseType,
-}
-
-impl Node {
-    pub fn new(node: ParseType) -> Self {
-        Self { children: Vec::new(), entry: node }
-    }
-}
 
 pub trait Visitor {
     

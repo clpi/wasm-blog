@@ -1,3 +1,4 @@
+// find out why neon wont work
 #[macro_use]
 extern crate nom;
 
@@ -5,6 +6,10 @@ pub mod parse;
 pub mod controller;
 pub mod view;
 pub mod model;
+pub mod dom;
+pub mod util;
+pub mod state;
+pub mod app;
 
 use std::mem::replace;
 use rayon::prelude::*;
@@ -18,7 +23,9 @@ use wasm_bindgen_futures::{
 use rand::{thread_rng, distributions::Alphanumeric, prelude::*};
 use web_sys::{Document, Element, HtmlElement, Window, console};
 use js_sys::{Promise, Reflect, WebAssembly, Uint8ClampedArray};
+use util::get_users;
 use nalgebra::*;
+use dom::*;
 
 //use web_sys::console;
 
@@ -38,14 +45,8 @@ extern "C" {
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-pub struct State {
-    pub string: String,
-}
-
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
-    // This provides better error messages in debug mode.
-    // It's disabled in release mode so it doesn't bloat up the file size.
     #[cfg(debug_assertions)]
     console_error_panic_hook::set_once();
 
@@ -59,12 +60,18 @@ pub fn main_js() -> Result<(), JsValue> {
         get_users().await.unwrap();
     };
 
+    let greet = |s: &str| { format!("Hello, {}", String::from(s)) };
+    let greetc = Closure::wrap(Box::new(|s: String| {
+        println!("Hello {}", s)
+    }) as Box<dyn FnMut(String)>);
 
-    let func = Closure::wrap(Box::new(|| {
-        println!("Hello")
-    }) as Box<dyn FnMut()>);
+    let d = doc().create_element("div")?;
+    let p = doc().create_element("p")?;
+    p.set_inner_html(greet("Hi").as_str());
+    d.append_child(&p)?;
+    body().append_child(&d)?;
 
-    let mut state = State { string: "Hello".to_string() };
+    let mut state = state::State { string: "Hello".to_string() };
 
     let change: Closure<dyn FnMut(String) -> String>
         = Closure::once(move |s: String| {
@@ -126,14 +133,15 @@ pub fn body() -> web_sys::HtmlElement {
 
 pub fn template() -> Result<(), JsValue> {
     let div = doc().create_element("div")?;
+    //let d = web_sys::css_text
     let btns = doc().create_element("div")?;
-    let head = doc().create_element("h1")?;
+    let head = doc().create_element("h3")?;
     let input = doc().create_element("input")?;
     let p = doc().create_element("p")?;
     let btn = doc().create_element("button")?;
     let btn2 = doc().create_element("button")?;
-    head.set_inner_html(format!("Hello from Rust!").as_str());
-    p.set_inner_html("this is wasm. This is coming from rust.");
+    head.set_inner_html(format!("Hello from WASM!").as_str());
+    p.set_inner_html("this is wasm. This is coming from rust/wasm.");
     btn.set_inner_html("Hello");
     btn2.set_inner_html("Submit");
     body().append_child(&div)?;
@@ -307,76 +315,7 @@ pub trait JsPromise {
 
 }
 
-//#[wasm_bindgen]
-pub async fn get_users() -> Result<JsValue, JsValue> {
-    let users = reqwest::get("http://localhost:3001/api/all").await.unwrap().text().await.unwrap();
-    let ul = doc().create_element("ul").unwrap();
-    for user in serde_json::to_vec(&users).unwrap() {
-        let li = doc().create_element("li").unwrap();
-        li.set_inner_html(user.to_string().as_str());
-        ul.append_child(&li).unwrap();
-    }
-    body().append_child(&ul).unwrap();
-    let val = JsValue::from_str(users.as_str());
-    Ok(val)
-}
 
-pub mod element {
-    use super::*;
-
-    pub fn div() -> web_sys::HtmlElement {
-        let div = doc().create_element("div").expect("");
-        doc().append_child(&div).unwrap();
-        div.dyn_into::<HtmlElement>().unwrap()
-    }
-
-    pub fn btn(paren: Option<HtmlElement>, text: Option<&str>) -> web_sys::HtmlButtonElement {
-        let btn = doc().create_element("btn").expect("");
-        btn.set_text_content(text);
-        if let Some(par) = paren {
-            par.append_child(&btn).unwrap();
-        } else {
-            doc().append_child(&btn).unwrap();
-        }
-        btn.dyn_into::<web_sys::HtmlButtonElement>().unwrap()
-    }
-}
-
-pub struct P {
-    el: web_sys::HtmlElement,
-    text: &'static str,
-}
-pub struct Btn {
-    el: web_sys::HtmlButtonElement,
-    text: &'static str,
-    style: String,
-    onclick: FnMut() -> (),
-
-}
-
-pub struct ButtonEl(web_sys::HtmlButtonElement);
-
-impl Btn {
-
-    pub fn on_click<F>(&mut self, mut func: F) -> () where
-    F: FnMut() -> () + 'static {
-       let func = Closure::wrap(Box::new(move || { 
-           func() 
-       }) as Box<dyn FnMut()>) ;
-       self.el.set_onclick(Some(func.as_ref().unchecked_ref()));
-       func.forget();
-    }
-
-    pub fn style(&mut self, prop: &str, val: &str) -> () {
-        self.el.style()
-            .set_property(prop, val)
-            .unwrap();
-    }
-}
-
-pub struct KeyEvent {
-   callback: Closure<dyn FnMut(web_sys::Event)>, 
-}
 
 pub struct Work {
     func: Box<dyn FnOnce() + Send>
@@ -389,8 +328,4 @@ impl Link {
     //}
 }
 pub trait IsElem {
-    type elem;
-
-    fn on_click<F>(elem: HtmlElement, func: &'static dyn FnMut() -> ()) -> ();
-    fn style(prop: &str, val: &str) -> ();
 }

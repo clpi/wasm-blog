@@ -3,7 +3,7 @@ import("../pkg/index.js").catch(console.error);
 //import("../../neon/").catch(console.error);
 
 
-console.log(neon);
+//console.log(neon);
 
 console.log("Hello!");
 

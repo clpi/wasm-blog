@@ -34,15 +34,24 @@ chrono="*"
 
 wasm-bindgen-futures = "*"
 nalgebra = { version = "0.20", default-features = false, features = [ "alloc" ] }
+ndarray="*"
+ndarray-rand="*"
 serde = { version = "*", features= ["derive"] }
 serde_json = "*"
 #nom="*"
 #rand="*"
 rand = { version = "0.7.3", features = ["wasm-bindgen"] }
+rand_core="*"
 #futures="0.3"
 futures-channel-preview = { version="0.3.0-alpha.18" }
 console_log="*"
 nom={ version="*", features=["regexp"] }
+futures="*"
+#pulldown-cmark
+comrak="*"
+crossbeam-channel="*"
+url="*"
+pest="*"
 
 # `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
 # compared to the default allocator's ~10K. However, it is slower than the default
@@ -53,10 +62,10 @@ wee_alloc = { version = "0.4.2", optional = true }
 # like the DOM.
 [dependencies.web-sys]
 version = "0.3.22"
-features = ["Performance", "PerformanceTiming", "console", "Document", "Window", "Element", "EventListener", "CanvasRenderingContext2d",
-"HtmlCanvasElement", "Event", "EventTarget", "FocusEvent", "KeyboardEvent", "DragEvent", "HtmlInputElement", "File", "FileReader", "HtmlButtonElement", "HtmlInputElement", "HtmlSelectElement", "HtmlTextAreaElement", "InputEvent", "Location", "MessageEvent", "MouseEvent", "Request", "Storage", "Text", "RequestCache", "RequestCredentials", "UiEvent", "Url", "WebSocket", "Worker", "WorkerOptions", "FocusEvent","FileList", "Headers", "PointerEvent", "Node", "ObserverCallback",
-"ProgressEvent", "Headers", "History", "HtmlLinkElement", "PopStateEvent",
-  "DomTokenList", "DomStringMap",   "CssStyleDeclaration", "NodeList"]
+features = ["Performance", "css", "CharacterData", "PerformanceTiming", "console", "Document", "Window", "Element", "EventListener", "CanvasRenderingContext2d", "HtmlSlotElement", "DocumentFragment", "HtmlTemplateElement","CustomElementRegistry", "ShadowRoot", "ShadowRootInit", "ShadowRootMode", "Blob", "Event", "EventTarget", "FocusEvent", "KeyboardEvent", "DragEvent", "InputEvent", "File", "FileReader", "HtmlButtonElement", "HtmlInputElement", "HtmlSelectElement", "HtmlTextAreaElement", "Location", "MessageEvent", "MouseEvent", "Request", "Storage", "Text", "RequestCache", "RequestCredentials", "UiEvent", "Url", "WebSocket", "Worker", "WorkerOptions","FileList", "Headers", "PointerEvent", "Node", "ObserverCallback",
+"ConvolverNode", "AddEventListenerOptions", 
+"ProgressEvent", "Headers", "History", "HtmlLinkElement", "PopStateEvent", "ElementCreationOptions", "HtmlDivElement", "HtmlImageElement", "HtmlLiElement", "HtmlUListElement", "HtmlScriptElement", "HtmlParagraphElement", "HtmlStyleElement", "HtmlSourceElement", "HttpConnectionElement", "Request",   "Response", "DomTokenList", "DomStringMap",   "CssStyleDeclaration", "NodeList", "ImageData", "ImageBitmap", "MouseScrollEvent", "MutationEvent", "NodeIterator",
+"Notification", "NotificationEvent", "PageTransitionEvent", "PageTransitionEventInit", "StorageEvent", "StyleSheet","TransitionEvent", "XmlHttpRequest", "HtmlCanvasElement", "ScrollToOptions"]
 
 #[dependencies.js-sys]
 #version = "*"
